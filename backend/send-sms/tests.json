@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Send SMS code successfully",
+      "method": "POST",
+      "body": {
+        "phone": "+79991234567"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing phone number",
+      "method": "POST",
+      "body": {
+        "phone": ""
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

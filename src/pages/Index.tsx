@@ -39,6 +39,8 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>('chats');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
+  const [serverCode, setServerCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const [chats] = useState<Chat[]>([
     { id: 1, name: 'Мария Петрова', lastMessage: 'Привет! Как дела?', time: '14:23', unread: 2 },
@@ -61,15 +63,38 @@ const Index = () => {
     { id: 4, name: 'Команда VneChat', phone: '+7 999 456 78 90' },
   ]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (phone.length >= 10) {
-      setScreen('verify');
+      setIsLoading(true);
+      try {
+        const response = await fetch('https://functions.poehali.dev/14d9f352-16d8-4b9c-aaf4-b7238bc0e4d8', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ phone })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          setServerCode(data.code);
+          setScreen('verify');
+        }
+      } catch (error) {
+        console.error('SMS sending failed:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleVerify = () => {
-    if (otp.length === 6) {
+    if (otp.length === 6 && otp === serverCode) {
       setScreen('app');
+    } else if (otp.length === 6) {
+      alert('Неверный код подтверждения');
+      setOtp('');
     }
   };
 
@@ -116,8 +141,9 @@ const Index = () => {
               onClick={handleLogin} 
               className="w-full bg-primary hover:bg-primary/90 text-white"
               size="lg"
+              disabled={isLoading || phone.length < 10}
             >
-              Получить код
+              {isLoading ? 'Отправка...' : 'Получить код'}
             </Button>
           </div>
         </Card>
